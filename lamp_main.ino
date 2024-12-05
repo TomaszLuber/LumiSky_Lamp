@@ -1,3 +1,5 @@
+// This code was developed for the DOIT ESP32 DEVKIT V1
+
 #include <Arduino_JSON.h>
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
@@ -6,7 +8,6 @@
 
 #define BRIGHT 13
 #define DIM 12
-#define SENSORBUTTON 14
 #define COLOR 27
 #define TIMEPLUS 26
 #define TIMEMINUS 25
@@ -15,26 +16,33 @@
 #define RING2PIN 2
 #define NUMPIXELS1 24
 #define NUMPIXELS2 16
-#define SSID "OPPO Reno2 Z"
-#define PASS "213769420"
+// SENSORBUTTON is an additional button that can be used for anything else, in this code it is used to override the sensor 
+#define SENSORBUTTON 14 
 
-String city = "Espoo";
-String country = "FI";
-String key = "3afd219d00ac3dde20b14496a6eb6cea";
+// replace Wi-Fi credentials with own
+#define SSID "YOUR_SSID_GOES_HERE"
+#define PASS "YOUR_PASSWORD_GOES HERE"
+
+// see openweathermap.org for instructions
+String city = "CITY";
+String country = "COUNTRY_CODE";
+String key = "YOUR_OPENWEATHERMAP_KEY";
+
 String serverName = "api.openweathermap.org"; 
 String serverPath = "/data/2.5/weather?q=" + city + "," + country + "&units=metric&APPID=" + key;
 
 unsigned long lastWeatherUpdate = 0;
 unsigned long lastPresence = 0;
 unsigned long weatherDelay = 1000;
-unsigned long timer = 5000;
-unsigned long dur[3] = {2000, 5000, 10000};
-unsigned long b = 1;
+
+unsigned long timer = 5000;                 // default lamp on-time in [ms]
+unsigned long dur[3] = {2000, 5000, 10000}; // lemp time presets [ms]
+unsigned long b = 1;                        // default brightness level (1-10)
+
 bool lampOn = true;
 bool isWarm = false;
 int weatherID;
 int duration = 1;
-
 String jsonBuffer;
 int port = 443;
 
@@ -49,7 +57,6 @@ void setup() {
   pinMode(TIMEMINUS, INPUT_PULLUP);
   pinMode(SENSORBUTTON, INPUT_PULLUP);
   pinMode(SENSOR, INPUT_PULLDOWN);
-  pinMode(18,OUTPUT);
 
   ring.begin();
   lamp.begin();
@@ -74,7 +81,7 @@ void loop() {
   int timeMinusPress = digitalRead(TIMEMINUS);
   int presence = digitalRead(SENSOR);
 
-  // Check for brightness minus press
+  // Check for brightness - press
 
   if (!dimPress && (b > 1)) {
     b--;
@@ -86,7 +93,7 @@ void loop() {
     delay(250);
   }
 
-  // Check for brightness plus press
+  // Check for brightness + press
 
   if (!brightPress && (b < 10)) {
     b++;
@@ -111,7 +118,7 @@ void loop() {
     delay(250);
   }
 
-  // Check for timer plus press
+  // Check for timer + press
 
   if (!timePlusPress) {
     if(duration <= 1) {
@@ -134,7 +141,7 @@ void loop() {
     delay(250);
   }
 
-  // Check for timer minus press
+  // Check for timer - press
 
   if (!timeMinusPress) {
     if(duration >= 1) {
@@ -156,7 +163,6 @@ void loop() {
     updateRing();
     delay(250);
   }
-  // 1: br+ 2: dur+ 3: warm 4: override 5: dur- 6: b- 
 
   // Check for presence
 
@@ -167,7 +173,7 @@ void loop() {
       updateRing();
       lampOn = true;
     }
-    Serial.println("trig"); 
+    // Serial.println("trig"); // for debugging
     delay(250);
   } 
 
